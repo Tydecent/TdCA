@@ -59,6 +59,15 @@ tdca revoke --cn example.com --reason keyCompromise
 
 CN 命中多个证书时，`show`、`export` 和 `revoke` 会要求使用序列号。重复吊销保持首次吊销时间和原因。导出会原样保留服务器私钥的加密状态，不导出任何 CA 私钥。
 
+导出根 CA 公钥时，必须指定文件路径；格式支持 PEM（默认）和 DER：
+
+```bash
+tdca export-root-pubkey --out ./root-public-key.pem
+tdca export-root-pubkey --out ./root-public-key.der --format der
+```
+
+该命令只导出根 CA 证书中的公钥，不导出私钥；目标文件已存在时不会覆盖。
+
 ## CRL 与验证
 
 ```bash

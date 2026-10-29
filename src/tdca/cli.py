@@ -11,6 +11,7 @@ from typing import Any, Sequence
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 
 from . import __version__
@@ -47,6 +48,11 @@ def _base_parser() -> argparse.ArgumentParser:
         subparser.add_argument("--ca-dir", default=argparse.SUPPRESS, help="CA 工作目录")
         if json_output:
             subparser.add_argument("--json", action="store_true", help="输出 JSON")
+
+    export_pub = commands.add_parser("export-root-pubkey", help="导出根 CA 公钥")
+    common(export_pub)
+    export_pub.add_argument("--out", type=Path, required=True, help="导出文件路径")
+    export_pub.add_argument("--format", choices=("pem", "der"), default="pem", help="导出格式")
 
     root = commands.add_parser("init-root", help="初始化自签名根 CA")
     common(root)
@@ -427,7 +433,17 @@ def _run(args: argparse.Namespace) -> int:
     if args.command == "version":
         _emit({"version": __version__}, as_json)
         return 0
-    if args.command == "init-root":
+    if args.command == "export-root-pubkey":
+        certificate = ca.load_ca_certificate(ca_dir, "root")
+        encoding = serialization.Encoding.PEM if args.format == "pem" else serialization.Encoding.DER
+        data = certificate.public_key().public_bytes(
+            encoding=encoding,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        output = args.out.expanduser()
+        atomic_write(output, data, 0o644, replace=False)
+        _emit({"format": args.format, "public_key": str(output)}, as_json)
+    elif args.command == "init-root":
         certificate = ca.initialize_root(ca_dir, args.cn, args.org, args.valid_days, args.key_type, args.key_size)
         store.initialize(ca_dir)
         result = _ca_summary(certificate, ca.ca_path(ca_dir, "root") / "cert.pem")
