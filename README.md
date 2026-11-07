@@ -2,6 +2,9 @@
 
 `tdca` 是一个面向个人网站的本地 CA 管理 CLI，使用 Python 3.12、标准库 `argparse`、SQLite 和 `cryptography`。它不提供 Web/HTTP 服务或 OCSP，也不调用系统 `openssl` 命令。
 
+## 项目状态
+由于我们转向更安全的(CAOS)[https://github.com/Tydecent/CAOS]，本项目已于2026年10月31日停止开发，并将于11月8日被标记为归档(Archive)状态。
+
 ## 安装
 
 ```bash
